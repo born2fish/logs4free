@@ -1,0 +1,64 @@
+<a href="#modal{{l.id}}" class="collection-item modal-trigger" >
+    <span name="log_id" class="log_id">
+        {{l.id}}
+    </span>
+    <b class="log_date">
+        <u>{{l.date_time}}</u>
+    </b>
+    <br/>
+    <span class="log_protocol">
+        {{l.req_protocol}}
+    </span>
+    {% if l.req_type == 'GET' %}
+        <span class="log_method" style="color:blue;"><b>{{l.req_type}}</b></span>
+    {% else %}
+        <span class="log_method" style="color:darkblue;"><b>[{{l.req_type}}]</b></span>
+    {% endif %}
+    <br/>
+    {% if l.req_status == 200 or l.req_status == 302 %}
+        <span class="log_status"style="color:lightgreen;background-color:darkgreen;"><b>{{l.req_status}}</b></span>
+    {% else %}
+        <span class="log_status" style="color:gold;background-color:darkred;"><b>{{l.req_status}}</b></span>
+    {% endif %}
+    {% if l.from_ip == '127.0.0.1' %}
+        <span class="log_ip_from" style="background-color:lightgrey;"><b>{{l.from_ip}}</b></span>
+    {% else %}
+        <span  class="log_ip_from" style="background-color:grey;"><b>{{l.from_ip}}</b></span>
+    {% endif %}
+    <span class="log_uri">{{l.req_uri}}</span>
+
+    <span class="log_from_url">{{l.from_url}}</span>
+    <span class="log_user_agent">{{l.user_agent}}</span>
+
+</a>
+
+<!-- Modal Structure -->
+<div id="modal{{l.id}}" class="modal modal-fixed-footer">
+    <div class="modal-content">
+      <h4>{{l.date_time}}<span style="float:right;color:darkviolet;">{{l.id}}</span></h4>
+      <hr/>
+      <p>
+          {{l.req_protocol}}, <b>{{l.req_type}}</b> <br/><br/>
+          {{l.from_ip}} ->  {{l.req_uri}}
+          <br/><br/>
+          <i>{{l.from_url}}</i><br/><hr/>
+          <i style="font-size:8pt;">{{l.user_agent}}</i>
+            {% if l.req_status == 200 or l.req_status == 302%}
+                <span class="card_status" style="background-color:darkgreen;color:lightgreen;">
+                    {{l.req_status}}
+                </span>
+            {% else %}
+                <span class="card_status" style="background-color:darkred;color:gold;">
+                    {{l.req_status}}
+                </span>
+            {% endif %}
+      </p>
+    </div>
+    <div class="modal-footer">
+      {% if page == 'all'%}
+        <a href="/" class="modal-action modal-close waves-effect waves-green btn-flat ">close</a>
+      {% else %}
+        <a href="/errors/" class="modal-action modal-close waves-effect waves-green btn-flat ">close</a>
+      {% endif %}
+    </div>
+</div>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" style="background-color:lightgrey;">
+<head>
+    <meta charset="UTF-8">
+    <title>logs4free - errors</title>
+
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css">
+    <link rel="stylesheet" href="/static/apache_an/css/styles.css">
+</head>
+<body style="background-color:white;">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js"></script>
+    {% block content %}
+
+    <nav>
+        <div class="nav-wrapper">
+          <a href="/" class="brand-logo">
+            <img src="/static/apache_an/images/logs4free2.png" width="30%" alt="logo" title="logo" />
+          </a>
+          <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a class="btn btn-primary" href="/errors/">Errors</a></li>
+            <li><a class="btn btn-primary" href="/">All</a></li>
+          </ul>
+        </div>
+    </nav>
+    <br/><br/><br/><br/>
+
+
+    <div id = "collection" class="collection">
+        {% for l in logs %}
+            {% include "apache_an/log_line.html" %}
+        {% endfor %}
+    </div>
+
+    {% load mytags %}
+
+    <div style="text-align:center;">
+        <div  id="step-links">
+            {% if latest_news_list.has_previous %}
+                <a class="btn btn-primary" href="?page={{ logs.previous_page_number }}" style="height:40px;">назад</a>
+            {% endif %}
+            <ul class="pagination" style="vertical-align:center;">
+                {% for page in logs.paginator.num_pages|get_range %}
+                    {% if page|paging_forward == logs.number %}
+                        <li class="disabled">{{page|paging_forward}}</li>
+                    {% else %}
+                        <li class="waves-effect"><a href="?page={{page|paging_forward}}">{{page|paging_forward}}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+
+            {% if logs.has_next %}
+                <a class="btn btn-primary" href="?page={{ latest_news_list.next_page_number }}" style="height:40px;">вперед</a>
+            {% endif %}
+        </div>
+    </div>
+    <br/>
+    <hr/><br/>
+
+
+    <script>
+        function getFormattedDate(date) {
+          var year = date.getFullYear();
+          var month = (1 + date.getMonth()).toString();
+          month = month.length > 1 ? month : '0' + month;
+          var day = date.getDate().toString();
+          day = day.length > 1 ? day : '0' + day;
+          var hours = date.getHours();
+          var minutes = date.getMinutes()<10?'0'+date.getMinutes():date.getMinutes();
+
+          return hours + ':' + minutes;
+        }
+
+        function doCheck(){
+            $.ajax({
+                url: "/last/",
+                error: function(){
+                    console.log("error req");
+                    setTimeout(doCheck, 1000);
+                },
+                success: function(data){
+                    //console.log(data);
+                    var obj = jQuery.parseJSON( data.replace("[","").replace("]","") );
+                    var last_id = obj.pk;
+                    var req_protocol = obj.fields.req_protocol;
+                    var date_time = obj.fields.date_time;
+                    var req_type = obj.fields.req_type;
+                    var req_status = obj.fields.req_status;
+                    var from_ip = obj.fields.from_ip;
+                    var req_uri = obj.fields.req_uri;
+                    var from_url = obj.fields.from_url;
+                    var user_agent = obj.fields.user_agent;
+                    var card_status = "";
+
+                    if(req_type == 'GET'){
+                        req_type = '<span class="log_method" style="color:blue;">' +
+                                        '<b>' + req_type + '</b>' +
+                                   '</span>';
+                    }else{
+                        req_type = '<span class="log_method" style="color:darkblue;">' +
+                                        '<b>' + req_type + '</b>' +
+                                   '</span>';
+                    }
+
+                    if(req_status == '200' || req_status == '302'){
+                        card_status = '<div class="card_status" style="background-color:darkgreen;color:lightgreen;">' +
+                                            req_status +
+                                      '</div>';
+                        req_status_html = '<br/><span class="log_status" style="color:lightgreen;background-color:darkgreen;">' +
+                                                    '<b>' + req_status + '</b>' +
+                                               '</span>';
+                    }else{
+                        card_status = '<div class="card_status" style="background-color:darkred;color:gold;">' +
+                                            req_status +
+                                      '</div>';
+                        req_status_html = '<br/><span class="log_status"  style="color:gold;background-color:darkred;"><b>' +
+                                                    req_status + '</b>' +
+                                               '</span>';
+                    }
+
+
+                    if(from_ip == '127.0.0.1' || from_ip == 'localhost'){
+                        from_ip = '<span class="log_ip_from" style="background-color:lightgrey;">' +
+                                      '<b>' + from_ip + '</b>' +
+                                  '</span>';
+                    }else{
+                        from_ip = '<span class="log_ip_from" style="background-color:grey;">' +
+                                      '<b>' + from_ip + '</b>' +
+                                  '</span>';
+                    }
+
+
+                    var lst_html = $('span[name=log_id]')[0];
+                    lst_html_id = lst_html.innerHTML;
+
+                    if (parseInt(last_id) != parseInt(lst_html_id)){
+                        var r_date = new Date(date_time);
+                        var html_data = "";
+
+                        html_data = '<a href="#modal' + obj.pk + '" class="collection-item modal-trigger">' +
+                                        '<span name="log_id" class="log_id">' + obj.pk + "</span>" +
+                                        '<b class="log_date"><u>' + getFormattedDate(r_date) + "</u></b><br/>" +
+                                        '<span class="log_protocol">' + req_protocol + '</span>' +
+                                        req_type + req_status_html + from_ip + '<span class="log_uri">' + req_uri + "</span>" +
+                                    '</a>';
+
+                        var modalHtml = "";
+                        //alert(obj.pk);
+                        modalHtml = '<br/><div id="modal' + obj.pk + '" class="modal modal-fixed-footer">' +
+                                            '<div class="modal-content"><h4>' + date_time + '<span style="float:right;color:darkviolet;">' + obj.pk + '</span></h4>'+
+                                            '<hr/><p>' + req_protocol + ',<b>' + req_type + '</b> <br/><br/>' +
+                                                    from_ip + ' -> ' + req_uri + '<br/><br/>' + '<i>' + from_url + '</i><br/><hr/>'+
+                                                    '<i style="font-size:8pt;">' + user_agent + '</i>' + card_status +
+                                                '</p>' +
+                                             '</div>' +
+                                             '<div class="modal-footer">' +
+                                                '<a href="/errors/" class="modal-action modal-close waves-effect waves-green btn-flat ">close</a>' +
+                                             '</div>' +
+                                          '</div>'
+                        if(req_status != "200" && req_status != "302"){
+                            $('#collection a:first').before(html_data + modalHtml);
+                        }
+
+                        $('.modal-trigger').leanModal();
+                    }
+                    setTimeout(doCheck, 1000);
+                },
+                timeout: 1000
+            });
+        }
+        setTimeout(doCheck, 1000);
+
+        $(document).ready(function() {
+          $('.modal-trigger').leanModal();
+        });
+
+    </script>
+
+    {% endblock %}
+
+</body>
+</html>
