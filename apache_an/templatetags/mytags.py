@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-import simplejson
 from django import template
 import locale
-
-from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -122,13 +119,6 @@ def pressure(value):
     except AttributeError:
         return ''
 
-
-@register.filter("geoj")
-def geoj(value):
-    try:
-        return mark_safe(simplejson.dumps(value))
-    except AttributeError:
-        return ''
 
 
 @register.filter("status")
